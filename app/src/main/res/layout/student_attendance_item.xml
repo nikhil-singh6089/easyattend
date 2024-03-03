@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/linearLayoutStudentItem"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:layout_margin="5dp"
+    android:background="#BDB85C"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="50dp"
+        android:layout_height="120dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/checkedImage"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:srcCompat="@drawable/check_box_image" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="220dp"
+        android:layout_height="120dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textViewStudentName_student_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:gravity="center"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/textViewStudentRollNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:gravity="center"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/textViewStudentAttendanceStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:gravity="center"
+            android:text="TextView" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="135dp"
+        android:layout_height="120dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/StudentImage_student_item"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            app:srcCompat="@drawable/signup_account_box" />
+    </LinearLayout>
+</LinearLayout>

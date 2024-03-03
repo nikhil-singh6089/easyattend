@@ -1,0 +1,1 @@
+this is my final year project a easy way to take attendance for teachers and a application of machine learning models in general

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/CreateClassLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".CreateClassActivity">
+
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarCreateClass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_marginTop="0dp"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" />
+
+    <LinearLayout
+        android:id="@+id/buttonCreateClassContainer"
+        android:layout_width="320dp"
+        android:layout_height="100dp"
+        android:layout_margin="5dp"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/buttonCreateClassEvent"
+            android:layout_width="25dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:layout_weight="1"
+            android:text="CreateClass" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="320dp"
+        android:layout_height="575dp"
+        android:layout_margin="5dp">
+
+        <LinearLayout
+            android:id="@+id/editTextStudentContainer"
+            android:layout_width="320dp"
+            android:layout_height="575dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="10dp" />
+    </ScrollView>
+
+</LinearLayout>

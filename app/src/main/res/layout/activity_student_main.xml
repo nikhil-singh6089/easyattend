@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".StudentMainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarStudentMainPage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:layout_marginTop="4dp"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_margin="20dp">
+
+        <ProgressBar
+            android:id="@+id/progressBarStudentImage"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="220dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="20dp" />
+
+        <ImageView
+            android:id="@+id/studentImageView"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:src="@drawable/signup_account_box" />
+    </FrameLayout>
+
+
+    <TextView
+        android:id="@+id/textViewStudentName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="TextView"
+        android:textAlignment="center" />
+
+    <Button
+        android:id="@+id/buttonAddUserAIImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="For AI Attendance" />
+
+    <Button
+        android:id="@+id/buttonCheckStudentAttendance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="Check Attendance"
+        android:textAlignment="center" />
+</LinearLayout>

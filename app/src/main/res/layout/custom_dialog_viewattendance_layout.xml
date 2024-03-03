@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textViewVAOAD"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:hint="your choice"
+        android:textAlignment="center" />
+
+    <Spinner
+        android:id="@+id/spinnerViewAttendanceOfADay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayoutVAOAD"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        app:endIconDrawable="@drawable/ic_calendar"
+        app:endIconMode="custom">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextDateVAOAD"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="false"
+            android:hint="Select Date" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="320dp"
+        android:layout_height="100dp"
+        android:layout_margin="5dp"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/buttonOk"
+            android:layout_width="25dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:layout_weight="1"
+            android:text="Ok" />
+        <Button
+            android:id="@+id/buttonNotOk"
+            android:layout_width="25dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:layout_weight="1"
+            android:text="cancel" />
+
+    </LinearLayout>
+
+</LinearLayout>
