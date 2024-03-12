@@ -80,17 +80,20 @@ class MainActivity : AppCompatActivity() {
                 if (dataSnapshot.exists()) {
                     for (userSnapshot in dataSnapshot.children) {
                         val user = userSnapshot.getValue(User::class.java)
+                        val userId = user?.rollNumber
                         val role = user?.role
                         if(role == "Teacher"){
 
                             val intent = Intent(this@MainActivity, FacultyMainActivity :: class.java)
-                            intent.putExtra("uuid", auth.currentUser?.uid.toString());
+                            intent.putExtra("userId", userId)
+                            intent.putExtra("uuid", auth.currentUser?.uid.toString())
                             startActivity(intent)
 
                         }else{
 
                             val intent = Intent(this@MainActivity, StudentMainActivity :: class.java)
-                            intent.putExtra("uuid", auth.currentUser?.uid.toString());
+                            intent.putExtra("userId", userId)
+                            intent.putExtra("uuid", auth.currentUser?.uid.toString())
                             startActivity(intent)
                         }
 

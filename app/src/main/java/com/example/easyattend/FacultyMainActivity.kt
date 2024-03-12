@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -18,6 +19,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.easyattend.databinding.ActivityFacultyMainBinding
+import com.example.easyattend.databinding.CustomDialogManualattendanceofadayLayoutBinding
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
@@ -38,12 +40,12 @@ class FacultyMainActivity : AppCompatActivity() {
 
     private lateinit var facultyMainBinding : ActivityFacultyMainBinding
     private lateinit var auth: FirebaseAuth
+    private lateinit var userId : String
 
     private val myRef = Firebase.database.reference.child("Users")
     private val myRefClass = Firebase.database.reference.child("Classes")
     private var imageUri : Uri? = null
     private var isRunning = true
-    private var userId : String = ""
     private var classNameOptions = ArrayList<String>()
     private var mapClassNameToId: HashMap<String, String> = hashMapOf()
 
@@ -57,7 +59,7 @@ class FacultyMainActivity : AppCompatActivity() {
         supportActionBar?.title = "Main Faculty Page"
         classNameOptions.clear() // to clear arrayList after create class Process
         facultyMainBinding.progressBarFacultyImage.visibility=View.VISIBLE
-
+        userId = intent.getStringExtra("userId").toString()
 
         //deal with delay of database
         Thread {
@@ -93,6 +95,19 @@ class FacultyMainActivity : AppCompatActivity() {
         }
 
     }
+// something i am exploring
+//    override fun onStart() {
+//
+//        val user = auth.currentUser
+//        if( user == null){
+//
+//            val intent = Intent(this@FacultyMainActivity,MainActivity::class.java)
+//            startActivity(intent)
+//
+//        }
+//
+//        super.onStart()
+//    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
@@ -197,8 +212,8 @@ class FacultyMainActivity : AppCompatActivity() {
         val spinner = dialogView.findViewById<Spinner>(R.id.spinnerViewAttendanceOfADay)
         val textInputLayout = dialogView.findViewById<TextInputLayout>(R.id.textInputLayoutVAOAD)
         val textInputEditText = dialogView.findViewById<TextInputEditText>(R.id.editTextDateVAOAD)
-        val buttonOk = dialogView.findViewById<Button>(R.id.buttonOk)
-        val buttonNotOk = dialogView.findViewById<Button>(R.id.buttonNotOk)
+        val buttonOk = dialogView.findViewById<Button>(R.id.buttonOkVAOAD)
+        val buttonNotOk = dialogView.findViewById<Button>(R.id.buttonNotOkVAOAD)
 
         val adapter = ArrayAdapter(this@FacultyMainActivity, android.R.layout.simple_spinner_item, classNameOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -233,7 +248,97 @@ class FacultyMainActivity : AppCompatActivity() {
             val datePickerDialog = DatePickerDialog(
                 this@FacultyMainActivity,
                 { _: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int ->
-                    textInputEditText.setText("$year-${monthOfYear + 1}-$dayOfMonth")
+                    val formattedMonth = String.format("%02d", monthOfYear + 1) // Add leading zero if necessary
+                    val formattedDay = String.format("%02d", dayOfMonth) // Add leading zero if necessary
+                    textInputEditText.setText("$year-$formattedMonth-$formattedDay")
+                },
+                year,
+                month,
+                day
+            )
+            datePickerDialog.show()
+        }
+
+        buttonNotOk.setOnClickListener(){
+
+            dialog.dismiss()
+
+        }
+        buttonOk.setOnClickListener(){
+
+            if (textInputEditText.text.toString()
+                    .isNotEmpty() && textInputEditText.text.toString().isNotEmpty()
+            ) {
+                val date = textInputEditText.text.toString().trim()
+                val className = textViewString.text.toString()
+
+                val intent = Intent(this@FacultyMainActivity, FacultyAttendanceViewActivity::class.java)
+                intent.putExtra("ClassName", className)
+                intent.putExtra("ClassId",mapClassNameToId[className])
+                intent.putExtra("Date", date)
+                intent.putExtra("UserName", facultyMainBinding.textViewName.text.toString())
+                intent.putExtra("UserId", userId)
+                dialog.dismiss()
+                startActivity(intent)
+            } else {
+                Toast.makeText(
+                    applicationContext,
+                    "date aur class to select karo",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        dialog.show()
+
+    }
+
+    private fun takeAttendanceOfADayDialogBox(){
+
+        val dialogView = layoutInflater.inflate(R.layout.custom_dialog_manualattendanceofaday_layout, null)
+        val textViewString = dialogView.findViewById<TextView>(R.id.textViewMAOAD)
+        val spinner = dialogView.findViewById<Spinner>(R.id.spinnerManualAttendanceOfADay)
+        val textInputLayout = dialogView.findViewById<TextInputLayout>(R.id.textInputLayoutMAOAD)
+        val textInputEditText = dialogView.findViewById<TextInputEditText>(R.id.editTextDateMAOAD)
+        val buttonOk = dialogView.findViewById<Button>(R.id.buttonOkMAOAD)
+        val buttonNotOk = dialogView.findViewById<Button>(R.id.buttonNotOkMAOAD)
+
+        val adapter = ArrayAdapter(this@FacultyMainActivity, android.R.layout.simple_spinner_item, classNameOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+
+        val dialogMessage = AlertDialog.Builder(this)
+        dialogMessage.setTitle("To take Attendance Of Any Day")
+        dialogMessage.setMessage("advance Functionality")
+        dialogMessage.setView(dialogView)
+
+        val dialog = dialogMessage.create()
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Handle selection here
+                val selectedItem = classNameOptions[position]
+                textViewString.setText(selectedItem)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Another interface callback
+                Toast.makeText(applicationContext, "please select some thing dont make my life harder", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        textInputLayout.setEndIconOnClickListener() {
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = DatePickerDialog(
+                this@FacultyMainActivity,
+                { _: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int ->
+                    val formattedMonth = String.format("%02d", monthOfYear + 1) // Add leading zero if necessary
+                    val formattedDay = String.format("%02d", dayOfMonth) // Add leading zero if necessary
+                    textInputEditText.setText("$year-$formattedMonth-$formattedDay")
                 },
                 year,
                 month,
@@ -255,11 +360,103 @@ class FacultyMainActivity : AppCompatActivity() {
                 val date = textInputEditText.text.toString()
                 val className = textViewString.text.toString()
 
-                val intent = Intent(this@FacultyMainActivity, FacultyAttendanceViewActivity::class.java)
+                val intent = Intent(this@FacultyMainActivity, FacultyTakeAttendanceActivity::class.java)
                 intent.putExtra("ClassName", className)
+                intent.putExtra("ClassId",mapClassNameToId[className])
                 intent.putExtra("Date", date)
                 intent.putExtra("UserName", facultyMainBinding.textViewName.text.toString())
                 intent.putExtra("UserId", userId)
+                intent.putExtra("CheckActivity","new")
+                dialog.dismiss()
+                startActivity(intent)
+            } else {
+                Toast.makeText(
+                    applicationContext,
+                    "date aur class to select karo",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        dialog.show()
+
+    }
+
+    private fun updateAttendanceOfADayDialogBox(){
+
+        val dialogView = layoutInflater.inflate(R.layout.custom_dialog_updateattendanceofaday_layout, null)
+        val textViewString = dialogView.findViewById<TextView>(R.id.textViewUAOAD)
+        val spinner = dialogView.findViewById<Spinner>(R.id.spinnerUpdateAttendanceOfADay)
+        val textInputLayout = dialogView.findViewById<TextInputLayout>(R.id.textInputLayoutUAOAD)
+        val textInputEditText = dialogView.findViewById<TextInputEditText>(R.id.editTextDateUAOAD)
+        val buttonOk = dialogView.findViewById<Button>(R.id.buttonOkUAOAD)
+        val buttonNotOk = dialogView.findViewById<Button>(R.id.buttonNotOkUAOAD)
+
+        val adapter = ArrayAdapter(this@FacultyMainActivity, android.R.layout.simple_spinner_item, classNameOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+
+        val dialogMessage = AlertDialog.Builder(this)
+        dialogMessage.setTitle("Update Attendance Of Any Day")
+        dialogMessage.setMessage("advance Functionality")
+        dialogMessage.setView(dialogView)
+
+        val dialog = dialogMessage.create()
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Handle selection here
+                val selectedItem = classNameOptions[position]
+                textViewString.setText(selectedItem)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Another interface callback
+                Toast.makeText(applicationContext, "please select some thing dont make my life harder", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        textInputLayout.setEndIconOnClickListener() {
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = DatePickerDialog(
+                this@FacultyMainActivity,
+                { _: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int ->
+                    val formattedMonth = String.format("%02d", monthOfYear + 1) // Add leading zero if necessary
+                    val formattedDay = String.format("%02d", dayOfMonth) // Add leading zero if necessary
+                    textInputEditText.setText("$year-$formattedMonth-$formattedDay")
+                },
+                year,
+                month,
+                day
+            )
+            datePickerDialog.show()
+        }
+
+        buttonNotOk.setOnClickListener(){
+
+            dialog.dismiss()
+
+        }
+        buttonOk.setOnClickListener(){
+
+            if (textInputEditText.text.toString()
+                    .isNotEmpty() && textInputEditText.text.toString().isNotEmpty()
+            ) {
+                val date = textInputEditText.text.toString()
+                val className = textViewString.text.toString()
+
+                val intent = Intent(this@FacultyMainActivity, FacultyTakeAttendanceActivity::class.java)
+                intent.putExtra("ClassName", className)
+                intent.putExtra("ClassId",mapClassNameToId[className])
+                intent.putExtra("Date", date)
+                intent.putExtra("UserName", facultyMainBinding.textViewName.text.toString())
+                intent.putExtra("UserId", userId)
+                intent.putExtra("CheckActivity","update".trim())
+                dialog.dismiss()
                 startActivity(intent)
             } else {
                 Toast.makeText(
@@ -279,11 +476,11 @@ class FacultyMainActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.custom_dialog_todayattendance_layout, null)
         val textViewString = dialogView.findViewById<TextView>(R.id.textViewTAOTD)
         val spinner = dialogView.findViewById<Spinner>(R.id.spinnerTakeAttendanceOfToday)
-        val buttonOk = dialogView.findViewById<Button>(R.id.buttonOk)
-        val buttonNotOk = dialogView.findViewById<Button>(R.id.buttonNotOk)
+        val buttonOk = dialogView.findViewById<Button>(R.id.buttonOkTAOTD)
+        val buttonNotOk = dialogView.findViewById<Button>(R.id.buttonNotOkTAOTD)
         val currentDate = Date()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-        val dateCreated : String = dateFormat.format(currentDate).trim()
+        val dateCreated = dateFormat.format(currentDate).toString().trim()
 
         val adapter = ArrayAdapter(this@FacultyMainActivity, android.R.layout.simple_spinner_item, classNameOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -300,7 +497,7 @@ class FacultyMainActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // Handle selection here
                 val selectedItem = classNameOptions[position]
-                textViewString.setText(selectedItem)
+                textViewString.text = selectedItem
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -360,6 +557,14 @@ class FacultyMainActivity : AppCompatActivity() {
         buttonTAOTD.setOnClickListener(){
             dialog.dismiss()
             takeAttendanceOfTodayDialogBox()
+        }
+        buttonTAOAD.setOnClickListener(){
+            dialog.dismiss()
+            takeAttendanceOfADayDialogBox()
+        }
+        buttonUAOAD.setOnClickListener(){
+            dialog.dismiss()
+            updateAttendanceOfADayDialogBox()
         }
         dialog.show()
     }

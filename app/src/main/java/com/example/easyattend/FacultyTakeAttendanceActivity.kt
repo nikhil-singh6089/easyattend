@@ -15,12 +15,15 @@ import java.util.UUID
 class FacultyTakeAttendanceActivity : AppCompatActivity() {
 
     private lateinit var facultyAttendanceTakeBinding: ActivityFacultyTakeAttendanceBinding
-    private var userId : String = ""
+    private lateinit var takeAttendanceAdapter: TakeAttendanceAdapter
+    private lateinit var userId : String
+    private lateinit var checkActivity : String
+
+
     private var studentAttendanceList: ArrayList<StudentAttendance> = arrayListOf()
     private val myRefClass = Firebase.database.reference.child("Classes")
     private val myRefUser = Firebase.database.reference.child("Users")
     private val myRefAttendance = Firebase.database.reference.child("Attendance")
-    private lateinit var takeAttendanceAdapter: TakeAttendanceAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,17 +31,23 @@ class FacultyTakeAttendanceActivity : AppCompatActivity() {
         val view = facultyAttendanceTakeBinding.root
         setContentView(view)
 
-        userId = intent.getStringExtra("userId").toString()
+        userId = intent.getStringExtra("UserId").toString()
         var className = intent.getStringExtra("ClassName").toString()
         val classId = intent.getStringExtra("ClassId").toString()
         var userName = intent.getStringExtra("UserName").toString()
-        var date = intent.getStringExtra("Date").toString()
+        var date = intent.getStringExtra("Date").toString().trim()
+        checkActivity = intent.getStringExtra("CheckActivity").toString().trim()
 
         facultyAttendanceTakeBinding.textViewAttendanceDate.text = date
         facultyAttendanceTakeBinding.textviewFTAClassName.text = className
 
-        populateStudentAttendanceList(classId)
-
+        if(checkActivity.equals("new")) {
+            populateStudentAttendanceList(classId)
+            updateRecycleViewer()
+        }else if(checkActivity.equals("update")){
+            getStudentAttendanceList(classId,date)
+            updateRecycleViewer()
+        }
         facultyAttendanceTakeBinding.buttonFacultyMakePresent.setOnClickListener(){
 
             takeAttendanceAdapter.makePresent()
@@ -127,6 +136,44 @@ class FacultyTakeAttendanceActivity : AppCompatActivity() {
             }
         }
 
+
+    }
+
+    private fun getStudentAttendanceList(classId : String,date : String){
+
+        val ref = myRefAttendance.orderByChild("classId").equalTo(classId)
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (classSnapshot in snapshot.children){
+
+                    val attendanceData = classSnapshot.getValue(Attendance::class.java)
+                    val validateDate = attendanceData?.date?.trim()
+                    if (attendanceData != null && date == validateDate ) {
+                        studentAttendanceList =
+                            attendanceData.studentAttendanceList as ArrayList<StudentAttendance>
+                        updateRecycleViewer()
+                        return
+
+                    }else{
+                        Toast.makeText(applicationContext, "attendance List empty", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(applicationContext, "${error.code}"+error.details+error.message, Toast.LENGTH_SHORT).show()
+            }
+        })
+
+    }
+
+    private fun updateRecycleViewer(){
+
+        takeAttendanceAdapter = TakeAttendanceAdapter(this@FacultyTakeAttendanceActivity,studentAttendanceList)
+
+        facultyAttendanceTakeBinding.RecyclerViewTakeAttendance.layoutManager = LinearLayoutManager(this@FacultyTakeAttendanceActivity)
+
+        facultyAttendanceTakeBinding.RecyclerViewTakeAttendance.adapter = takeAttendanceAdapter
 
     }
 }
