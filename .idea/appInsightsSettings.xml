@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.easyattend" />
+                  <option name="mobileSdkAppId" value="1:530780863454:android:ba51fc1189fd5f809a7b4f" />
+                  <option name="projectId" value="advnotesapp-c1f16" />
+                  <option name="projectNumber" value="530780863454" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

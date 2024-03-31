@@ -92,7 +92,7 @@ class TakeAttendanceAdapter(
 
         for(place in selectedList){
 
-            attendanceList[place].attendanceStatus = true
+            attendanceList[place].attendanceStatus = false
 
         }
         selectedList.clear()

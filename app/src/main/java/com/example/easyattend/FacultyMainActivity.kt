@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -19,7 +18,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.easyattend.databinding.ActivityFacultyMainBinding
-import com.example.easyattend.databinding.CustomDialogManualattendanceofadayLayoutBinding
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
@@ -91,6 +89,12 @@ class FacultyMainActivity : AppCompatActivity() {
         facultyMainBinding.buttonCheckAttendance.setOnClickListener(){
 
             attendanceDialogBox()
+
+        }
+        facultyMainBinding.buttonAiAttendence.setOnClickListener() {
+
+            val intent = Intent(this@FacultyMainActivity,AiAttendanceActivity::class.java)
+            startActivity(intent)
 
         }
 
