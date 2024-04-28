@@ -28,12 +28,12 @@ class SignUpActivity : AppCompatActivity() {
 
     private lateinit var signUpBinding : ActivitySignUpBinding
     private lateinit var auth: FirebaseAuth
-    private val myRef = Firebase.database.reference.child("Users")
     private lateinit var activityResultLauncher : ActivityResultLauncher<Intent>
 
     private var imageUri : Uri? = null
-    private var storage : FirebaseStorage = FirebaseStorage.getInstance()
-    private var storageRef : StorageReference = storage.reference
+    private val myRef = Firebase.database.reference.child("Users")
+    private val storage : FirebaseStorage = FirebaseStorage.getInstance()
+    private var storageRef : StorageReference = storage.reference.child("ProfileImages")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -229,7 +229,7 @@ class SignUpActivity : AppCompatActivity() {
 
         val imagename = signUpBinding.editTextUserId.text.toString()
 
-        val imageRefernce = storageRef.child("ProfileImages").child(imagename)
+        val imageRefernce = storageRef.child(imagename)
 
         imageUri?.let {
 
@@ -237,7 +237,7 @@ class SignUpActivity : AppCompatActivity() {
 
                 Toast.makeText(applicationContext, "User image uploaded", Toast.LENGTH_SHORT).show()
 
-                val uploadedImageUrl = storageRef.child("ProfileImages").child(imagename)
+                val uploadedImageUrl = storageRef.child(imagename)
                 uploadedImageUrl.downloadUrl.addOnSuccessListener {
 
                     val imageUrl : String = it.toString()

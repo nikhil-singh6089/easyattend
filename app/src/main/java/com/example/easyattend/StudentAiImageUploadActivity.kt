@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,7 +17,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.example.easyattend.databinding.ActivityAiAttendanceBinding
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.example.easyattend.databinding.ActivityStudentAiImageUploadBinding
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -25,49 +31,41 @@ import com.squareup.picasso.Picasso
 import java.io.File
 import java.io.IOException
 
-class AiAttendanceActivity : AppCompatActivity() {
+class StudentAiImageUploadActivity : AppCompatActivity() {
 
-    private lateinit var aiAttendanceViewBinding: ActivityAiAttendanceBinding
+    private lateinit var studentAiImageUploadBinding: ActivityStudentAiImageUploadBinding
     private lateinit var activityResultLauncher : ActivityResultLauncher<Intent>
 
-    private val storage : FirebaseStorage = FirebaseStorage.getInstance()
-    private var storageRef : StorageReference = storage.reference.child("AIImages")
-    private val myRefCI = Firebase.database.reference.child("CLassImages")
-
-    private val REQUEST_CODE_PERMISSIONS = 123
     private var imageUri : Uri? = null
-    private lateinit var userId : String
+    private var rollNumber : String? = null
+    private val REQUEST_CODE_PERMISSIONS = 123
 
+    private val myRefUser = Firebase.database.reference.child("Users")
+    private var storage : FirebaseStorage = FirebaseStorage.getInstance()
+    private var storageRef : StorageReference = storage.reference.child("AttendanceImages")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        aiAttendanceViewBinding = ActivityAiAttendanceBinding.inflate(layoutInflater)
-        val view = aiAttendanceViewBinding.root
+        studentAiImageUploadBinding = ActivityStudentAiImageUploadBinding.inflate(layoutInflater)
+        val view = studentAiImageUploadBinding.root
         setContentView(view)
+        studentAiImageUploadBinding.progressBarStudentAiImageActivity.visibility = View.INVISIBLE
         registerActivityResultLauncher()
 
-        userId = intent.getStringExtra("UserId").toString()
-        var className = intent.getStringExtra("ClassName").toString()
-        val classId = intent.getStringExtra("ClassId").toString()
-        var userName = intent.getStringExtra("UserName").toString()
-        var date = intent.getStringExtra("Date").toString().trim()
+        rollNumber = intent.getStringExtra("RollNumber").toString().trim()
 
-        aiAttendanceViewBinding.textViewClassNameForAiAttendance.text = className
-
-        aiAttendanceViewBinding.progressBarClassAiAttendanceImage.visibility = View.INVISIBLE
-
-        aiAttendanceViewBinding.buttonAiAttendenceImage.setOnClickListener(){
+        studentAiImageUploadBinding.buttonTakeImageStudentAiImageActivity.setOnClickListener(){
 
             takePicture()
 
         }
-        aiAttendanceViewBinding.AiClassAttendanceImageView.setOnClickListener(){
+        studentAiImageUploadBinding.buttonUpdateImageStudentAiImageActivity.setOnClickListener(){
 
-            choseImage()
+            updateImage(rollNumber!!)
 
         }
-        aiAttendanceViewBinding.buttonTakeAiAttendance.setOnClickListener(){
+        studentAiImageUploadBinding.ImageViewStudentAiImageActivity.setOnClickListener(){
 
-            uploadPhoto(classId,date)
+            choseImage()
 
         }
 
@@ -91,7 +89,6 @@ class AiAttendanceActivity : AppCompatActivity() {
             openCamera()
         }
     }
-
 
     private fun openCamera() {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -129,13 +126,20 @@ class AiAttendanceActivity : AppCompatActivity() {
                 // Handle permission denial
             }
         }
-        if(requestCode == 1 && grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }){
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            activityResultLauncher.launch(intent)
-        }
 
     }
 
+    private val cropLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Handle the cropped image URI
+            imageUri = result.data?.data
+            imageUri?.let {
+                Picasso.get().load(it).into(studentAiImageUploadBinding.ImageViewStudentAiImageActivity)
+                studentAiImageUploadBinding.progressBarStudentAiImageActivity.visibility = View.INVISIBLE
+
+            }
+        }
+    }
     @Throws(IOException::class)
     private fun createImageFile(): File {
         //val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -162,6 +166,53 @@ class AiAttendanceActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateImage(rollNumber : String){
+
+        studentAiImageUploadBinding.buttonUpdateImageStudentAiImageActivity.isClickable = false
+        studentAiImageUploadBinding.buttonTakeImageStudentAiImageActivity.isClickable = false
+
+        val imagename : String = rollNumber
+
+        val imageRefernce = storageRef.child(imagename)
+
+        imageUri?.let {
+
+            imageRefernce.putFile(it).addOnSuccessListener {
+
+                Toast.makeText(applicationContext, "User image uploaded", Toast.LENGTH_SHORT).show()
+
+                val uploadedImageUrl = storageRef.child(imagename)
+                uploadedImageUrl.downloadUrl.addOnSuccessListener {
+
+                    val imageUrl : String = it.toString()
+
+                    val updates = HashMap<String, Any>()
+                    updates["attendancePictureUrl"] = imageUrl
+
+                    myRefUser.child(rollNumber).updateChildren(updates)
+                        .addOnSuccessListener {
+                            // Handle success
+                            Toast.makeText(applicationContext, "Attendance picture url uploaded", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            // Handle failure
+                            Toast.makeText(applicationContext, e.toString(), Toast.LENGTH_SHORT).show()
+
+                        }
+                }
+                studentAiImageUploadBinding.buttonUpdateImageStudentAiImageActivity.isClickable = true
+                studentAiImageUploadBinding.buttonTakeImageStudentAiImageActivity.isClickable = true
+
+            }.addOnFailureListener{
+
+                Toast.makeText(applicationContext, "AttendanceImage upload failed", Toast.LENGTH_SHORT).show()
+                studentAiImageUploadBinding.buttonUpdateImageStudentAiImageActivity.isClickable = true
+                studentAiImageUploadBinding.buttonTakeImageStudentAiImageActivity.isClickable = true
+
+            }
+
+        }
+    }
     @Synchronized
     private fun choseImage(){
 
@@ -197,12 +248,14 @@ class AiAttendanceActivity : AppCompatActivity() {
                     imageUri = imageData.data
                 }
                 imageUri?.let {
-                    Picasso.get().load(it).into(aiAttendanceViewBinding.AiClassAttendanceImageView)
-                    aiAttendanceViewBinding.progressBarClassAiAttendanceImage.visibility = View.INVISIBLE
+                    Picasso.get().load(it).into(studentAiImageUploadBinding.ImageViewStudentAiImageActivity)
+                    studentAiImageUploadBinding.progressBarStudentAiImageActivity.visibility = View.INVISIBLE
                     cropImageOld(imageUri)
+
                 }
             })
     }
+
     private fun cropImageOld(imageUri: Uri?) {
         imageUri?.let { sourceUri ->
             val cropIntent = Intent("com.android.camera.action.CROP")
@@ -217,51 +270,4 @@ class AiAttendanceActivity : AppCompatActivity() {
             cropLauncher.launch(cropIntent)
         }
     }
-
-    private val cropLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            imageUri = result.data?.data
-            Toast.makeText(applicationContext, "result came ${result.resultCode} ${result.data}", Toast.LENGTH_LONG).show()
-            imageUri?.let {
-                Picasso.get().load(it).into(aiAttendanceViewBinding.AiClassAttendanceImageView)
-                aiAttendanceViewBinding.progressBarClassAiAttendanceImage.visibility = View.INVISIBLE
-
-            }
-        }
-    }
-
-    private fun uploadPhoto(classId : String,date : String){
-
-        aiAttendanceViewBinding.buttonTakeAiAttendance.isClickable = false
-
-
-        val imageRefernce = storageRef.child(date).child(classId)
-
-        imageUri?.let {
-
-            imageRefernce.putFile(it).addOnSuccessListener {
-
-                Toast.makeText(applicationContext, " image uploaded", Toast.LENGTH_SHORT).show()
-
-                val uploadedImageUrl = storageRef.child(date).child(classId)
-                uploadedImageUrl.downloadUrl.addOnSuccessListener {
-
-                    val AIImageUrl : String = it.toString()
-                    val data = AIImage(AIImageUrl)
-                    myRefCI.child(date).child(classId).setValue(data).addOnCompleteListener { task ->
-
-                        if(task.isSuccessful){
-                            Toast.makeText(applicationContext, "imageUrl added database", Toast.LENGTH_LONG).show()
-                        }else{
-                            Toast.makeText(applicationContext, task.exception.toString(), Toast.LENGTH_LONG).show()
-                        }
-                    }
-
-                }
-            }.addOnFailureListener{
-                Toast.makeText(applicationContext, "AIAttendanceImage upload failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 }
-

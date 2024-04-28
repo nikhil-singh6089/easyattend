@@ -26,6 +26,7 @@ class StudentMainActivity : AppCompatActivity() {
 
     private val myRef = Firebase.database.reference.child("Users")
     private var imageUri : Uri? = null
+    private var rollNumber : String? = null
     private var isRunning = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +34,7 @@ class StudentMainActivity : AppCompatActivity() {
         studentMainBinding = ActivityStudentMainBinding.inflate(layoutInflater)
         val view = studentMainBinding.root
         setContentView(view)
-
+        auth = Firebase.auth
         setSupportActionBar(studentMainBinding.toolbarStudentMainPage)
         supportActionBar?.setDisplayShowTitleEnabled(true)
         supportActionBar?.title = "Main Student Page"
@@ -60,6 +61,14 @@ class StudentMainActivity : AppCompatActivity() {
             isRunning = false
         }.start()
 
+        studentMainBinding.buttonAddUserAIImage.setOnClickListener(){
+
+            val intent = Intent(this@StudentMainActivity ,StudentAiImageUploadActivity::class.java)
+            intent.putExtra("RollNumber",rollNumber)
+            startActivity(intent)
+
+        }
+
     }
 //    adding menu items in toolbar
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -73,7 +82,7 @@ class StudentMainActivity : AppCompatActivity() {
 
         if(item.itemId == R.id.mainMenuProfile){
 
-            val intent = Intent(this,ProfileActivity::class.java)
+            val intent = Intent(this@StudentMainActivity ,ProfileActivity::class.java)
             intent.putExtra("uuid",auth.currentUser?.uid.toString())
             startActivity(intent)
 
@@ -81,8 +90,12 @@ class StudentMainActivity : AppCompatActivity() {
         if(item.itemId == R.id.mainMenuLogOut){
 
             Firebase.auth.signOut()
-            val intent =Intent(this,MainActivity :: class.java)
+            val intent =Intent(this@StudentMainActivity ,MainActivity::class.java)
+            // Added flags to clear the activity stack and prevent the user from navigating back
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // Start the login activity and finish the current activity
             startActivity(intent)
+            finish()
 
         }
 
@@ -97,6 +110,8 @@ class StudentMainActivity : AppCompatActivity() {
                     for (userSnapshot in dataSnapshot.children) {
                         val user = userSnapshot.getValue(User::class.java)
                         val username = user?.userName
+                        rollNumber = user?.rollNumber
+
                         studentMainBinding.textViewStudentName.text=username
                         imageUri = Uri.parse(user?.profilePictureUrl)
                         imageUri?.let {

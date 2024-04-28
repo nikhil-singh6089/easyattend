@@ -13,12 +13,15 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <queries>
         <intent>
             <action android:name="com.android.camera.action.CROP" />
+
             <data android:mimeType="image/*" />
         </intent>
     </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -30,8 +33,17 @@
         android:theme="@style/Theme.easyattend"
         tools:targetApi="31">
         <activity
-            android:name=".AiAttendanceActivity"
+            android:name=".StudentAiImageUploadActivity"
             android:exported="false" />
+        <activity
+            android:name=".AiAttendanceActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.camera.action.CROP" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".FacultyTakeAttendanceActivity"
             android:exported="false" />
@@ -62,6 +74,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.easyattend.fileprovider"

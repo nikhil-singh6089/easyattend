@@ -14,7 +14,5 @@ class ProfileActivity : AppCompatActivity() {
         val view = profileBinding.root
         setContentView(view)
 
-
-
     }
 }
