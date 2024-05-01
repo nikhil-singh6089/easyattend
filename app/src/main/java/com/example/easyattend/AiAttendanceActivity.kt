@@ -1,7 +1,6 @@
 package com.example.easyattend
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -22,6 +21,9 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.io.IOException
 
@@ -32,11 +34,13 @@ class AiAttendanceActivity : AppCompatActivity() {
 
     private val storage : FirebaseStorage = FirebaseStorage.getInstance()
     private var storageRef : StorageReference = storage.reference.child("AIImages")
-    private val myRefCI = Firebase.database.reference.child("CLassImages")
+    private val myRefCI = Firebase.database.reference.child("ClassImages")
 
     private val REQUEST_CODE_PERMISSIONS = 123
     private var imageUri : Uri? = null
     private lateinit var userId : String
+    private lateinit var className : String
+    private lateinit var userName : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,10 +50,16 @@ class AiAttendanceActivity : AppCompatActivity() {
         registerActivityResultLauncher()
 
         userId = intent.getStringExtra("UserId").toString()
-        var className = intent.getStringExtra("ClassName").toString()
+        className = intent.getStringExtra("ClassName").toString()
         val classId = intent.getStringExtra("ClassId").toString()
-        var userName = intent.getStringExtra("UserName").toString()
+        userName = intent.getStringExtra("UserName").toString()
         var date = intent.getStringExtra("Date").toString().trim()
+
+//        println("User ID: $userId")
+//        println("Class Name: $className")
+//        println("Class ID: $classId")
+//        println("User Name: $userName")
+//        println("Date: $date")
 
         aiAttendanceViewBinding.textViewClassNameForAiAttendance.text = className
 
@@ -246,12 +256,13 @@ class AiAttendanceActivity : AppCompatActivity() {
                 val uploadedImageUrl = storageRef.child(date).child(classId)
                 uploadedImageUrl.downloadUrl.addOnSuccessListener {
 
-                    val AIImageUrl : String = it.toString()
-                    val data = AIImage(AIImageUrl)
+                    val aIImageUrl : String = it.toString()
+                    val data = AIImage(aIImageUrl)
                     myRefCI.child(date).child(classId).setValue(data).addOnCompleteListener { task ->
 
                         if(task.isSuccessful){
                             Toast.makeText(applicationContext, "imageUrl added database", Toast.LENGTH_LONG).show()
+                            sendAttendanceImage(classId = classId,date = date, classImageUrl = aIImageUrl,className = className,userName = userName,userId = userId)
                         }else{
                             Toast.makeText(applicationContext, task.exception.toString(), Toast.LENGTH_LONG).show()
                         }
@@ -262,6 +273,37 @@ class AiAttendanceActivity : AppCompatActivity() {
                 Toast.makeText(applicationContext, "AIAttendanceImage upload failed", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    private fun sendAttendanceImage(userId : String, userName : String, className : String, classId : String, date : String, classImageUrl : String){
+
+        val requestBody = AttendanceData(classId = classId,date = date,classImageUrl = classImageUrl,className = className,userName = userName, userId = userId)
+        println(AttendanceData)
+        Toast.makeText(applicationContext, "${AttendanceData}", Toast.LENGTH_LONG).show()
+
+        val call = RetrofitClient.api.sendAttendanceImageAndData("/attendance" , requestBody)
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    //verificationCode = response.body()?.verificationCode.toString().toIntOrNull()!!
+                    if(response.body() != null){
+                        if(response.body()?.message == "attendance updated successfully" ) {
+                            Toast.makeText(applicationContext, " attendance updated ", Toast.LENGTH_LONG).show()
+                        }
+                    }else{
+                        Toast.makeText(applicationContext, "dont know wht response is null", Toast.LENGTH_SHORT).show()
+
+                    }
+
+                } else {
+                    Toast.makeText(applicationContext, "api comunication failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Toast.makeText(applicationContext, "looks like api is down sorry try after some time or call your admin", Toast.LENGTH_SHORT).show()
+            }
+        })
+
     }
 }
 

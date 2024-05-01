@@ -37,4 +37,10 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         tools:listitem="@layout/view_student_attendance_item" />
+    <Button
+        android:id="@+id/ButtontakeExcel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="download excel" />
 </LinearLayout>
