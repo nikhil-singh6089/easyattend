@@ -415,7 +415,7 @@ class FacultyMainActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // Handle selection here
                 val selectedItem = classNameOptions[position]
-                textViewString.setText(selectedItem)
+                textViewString.text = selectedItem
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -667,7 +667,6 @@ class FacultyMainActivity : AppCompatActivity() {
 
     private fun setClassNameOptions(userId : String){
         val ref = myRefClass.orderByChild("facultyRollNumber").equalTo(userId)
-
         ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for (classSnapshot in snapshot.children) {

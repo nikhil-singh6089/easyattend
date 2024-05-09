@@ -1,6 +1,7 @@
 package com.example.easyattend
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -118,7 +119,7 @@ class AiAttendanceActivity : AppCompatActivity() {
                     "com.example.easyattend.fileprovider",
                     it
                 )
-                cropImage(imageUri)
+                //cropImage(imageUri)
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
                 startActivityForResult(takePictureIntent, 1)
                 //cropImage(imageUri)
@@ -145,6 +146,20 @@ class AiAttendanceActivity : AppCompatActivity() {
         }
 
     }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+            // Get the captured image data
+            Toast.makeText(applicationContext, "clicked photo updated", Toast.LENGTH_SHORT).show()
+            print(imageUri)
+            imageUri?.let {
+                Picasso.get().load(it).into(aiAttendanceViewBinding.AiClassAttendanceImageView)
+                aiAttendanceViewBinding.progressBarClassAiAttendanceImage.visibility = View.INVISIBLE
+            }
+
+        }
+    }
 
     @Throws(IOException::class)
     private fun createImageFile(): File {
@@ -168,7 +183,6 @@ class AiAttendanceActivity : AppCompatActivity() {
             cropIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             cropIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             cropLauncher.launch(cropIntent)
-
         }
     }
 
@@ -209,7 +223,7 @@ class AiAttendanceActivity : AppCompatActivity() {
                 imageUri?.let {
                     Picasso.get().load(it).into(aiAttendanceViewBinding.AiClassAttendanceImageView)
                     aiAttendanceViewBinding.progressBarClassAiAttendanceImage.visibility = View.INVISIBLE
-                    cropImageOld(imageUri)
+                    //cropImageOld(imageUri)
                 }
             })
     }
@@ -220,8 +234,8 @@ class AiAttendanceActivity : AppCompatActivity() {
             cropIntent.putExtra("crop", "true")
             cropIntent.putExtra("aspectX", 1)
             cropIntent.putExtra("aspectY", 1)
-            cropIntent.putExtra("outputX", 200)
-            cropIntent.putExtra("outputY", 200)
+            cropIntent.putExtra("outputX", 400)
+            cropIntent.putExtra("outputY", 400)
             cropIntent.putExtra("scale", true)
             cropIntent.putExtra("return-data", false) // making it false did it but why
             cropLauncher.launch(cropIntent)

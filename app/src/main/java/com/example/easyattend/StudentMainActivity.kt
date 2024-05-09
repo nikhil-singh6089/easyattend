@@ -33,12 +33,12 @@ class StudentMainActivity : AppCompatActivity() {
 
     lateinit var  studentMainBinding : ActivityStudentMainBinding
     private lateinit var auth: FirebaseAuth
+    private lateinit var rollNumber : String
 
     private val myRef = Firebase.database.reference.child("Users")
     private val myRefAttendance = Firebase.database.reference.child("Attendance")
     private val myRefClass = Firebase.database.reference.child("Classes")
     private var imageUri : Uri? = null
-    private var rollNumber : String? = null
     private var isRunning = true
     private var classNameOptions = ArrayList<String>()
     private var mapClassNameToId: HashMap<String, String> = hashMapOf()
@@ -85,7 +85,7 @@ class StudentMainActivity : AppCompatActivity() {
         }
         studentMainBinding.buttonCheckStudentAttendance.setOnClickListener(){
 
-            showAttendancOfAClass()
+            showAttendanceOfAClass()
 
         }
 
@@ -130,8 +130,18 @@ class StudentMainActivity : AppCompatActivity() {
                     for (userSnapshot in dataSnapshot.children) {
                         val user = userSnapshot.getValue(User::class.java)
                         val username = user?.userName
-                        rollNumber = user?.rollNumber
-                        rollNumber?.let { setClassNameOptions(it) }
+                        if (user != null) {
+                            rollNumber = user.rollNumber
+                        }
+                        //setting faculty classes
+                        if(classNameOptions.isEmpty()){
+                            setClassNameOptions(rollNumber)
+                            println(classNameOptions)
+                        }else{
+                            classNameOptions.clear()
+                            setClassNameOptions(rollNumber)
+                            println(classNameOptions)
+                        }
                         studentMainBinding.textViewStudentName.text=username
                         imageUri = Uri.parse(user?.profilePictureUrl)
                         imageUri?.let {
@@ -153,7 +163,7 @@ class StudentMainActivity : AppCompatActivity() {
             }
         })
     }
-    private fun showAttendancOfAClass(){
+    private fun showAttendanceOfAClass(){
 
         val dialogView = layoutInflater.inflate(R.layout.custom_dialog_todayattendance_layout, null)
         val textViewString = dialogView.findViewById<TextView>(R.id.textViewTAOTD)
@@ -212,7 +222,8 @@ class StudentMainActivity : AppCompatActivity() {
                             .setTitle("Attendace of class")
                         val dialog = builder.create()
                         val totalDays = presentCount+absentCount
-                        val percentage = (presentCount/totalDays)*100
+                        val percentage = (presentCount*100)/2
+                        Toast.makeText(applicationContext, "$percentage", Toast.LENGTH_SHORT).show()
 
                         dialogBinding.textViewStudentTotalCount.text = totalDays.toString()
                         dialogBinding.textViewStudentPresentCount.text = presentCount.toString()
@@ -235,7 +246,7 @@ class StudentMainActivity : AppCompatActivity() {
         dialog.show()
 
     }
-    fun getAttendanceCountByClassIdAndStudentId(
+    private fun getAttendanceCountByClassIdAndStudentId(
         classId: String,
         studentId: String,
         callback: (Int, Int) -> Unit
@@ -274,11 +285,11 @@ class StudentMainActivity : AppCompatActivity() {
     }
 
     private fun setClassNameOptions(userId: String) {
-        val ref = myRefClass.orderByChild("studentList")
-            .startAt(userId)
-            .endAt("$userId\uf8ff")
+//        val ref = myRefClass.orderByChild("studentAttendanceList")
+//            .startAt(userId)
+//            .endAt("$userId\uf8ff")
 
-        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+        myRefClass.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for (classSnapshot in snapshot.children) {
                     val classData = classSnapshot.getValue(Classes::class.java)
